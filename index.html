@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator - Google Gemini Powered</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f43f5e;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+        }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.05);
+        }
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+        .camera-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #camera-feed {
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            background-color: #000;
+            max-height: 300px;
+            object-fit: cover;
+        }
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--dark);
+        }
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        .btn-danger {
+            background-color: var(--secondary);
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .preview-item {
+            flex: 1;
+            min-width: 150px;
+            position: relative;
+        }
+        .preview-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: var(--radius);
+            border: 1px solid #e2e8f0;
+        }
+        .remove-preview {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgba(244, 63, 94, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .remove-preview:hover {
+            background-color: var(--secondary);
+        }
+        .result-section {
+            display: none;
+        }
+        .result-section.active {
+            display: block;
+        }
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .result-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            object-fit: contain;
+        }
+        .result-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .notification {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: var(--dark);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 80%;
+        }
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .notification.success {
+            background-color: #10b981;
+        }
+        .notification.error {
+            background-color: var(--secondary);
+        }
+        .debug-info {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--gray);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .api-key-section {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .api-key-section h3 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+        .api-key-section p {
+            color: #78350f;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .api-key-input {
+            display: flex;
+            gap: 0.5rem;
+            flex-direction: column;
+        }
+        .api-key-input input {
+            flex: 1;
+        }
+        .browser-warning {
+            background-color: #fee2e2;
+            border: 1px solid #f87171;
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #991b1b;
+        }
+        .compatibility-info {
+            background-color: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #1e40af;
+        }
+        
+        /* Media queries for responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            .subtitle {
+                font-size: 0.9rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .upload-area {
+                padding: 1.5rem;
+            }
+            .upload-icon {
+                font-size: 2rem;
+            }
+            .btn {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            .result-image {
+                max-height: 300px;
+            }
+            .notification {
+                right: 0.5rem;
+                bottom: 0.5rem;
+                left: 0.5rem;
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .upload-area {
+                padding: 1rem;
+            }
+            .upload-icon {
+                font-size: 1.75rem;
+            }
+            .preview-image {
+                height: 120px;
+            }
+            .result-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .api-key-input {
+                flex-direction: column;
+            }
+        }
+        
+        /* For very large screens */
+        @media (min-width: 1200px) {
+            .container {
+                padding: 2rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            .card {
+                padding: 2rem;
+            }
+            .result-image {
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Image Generator</h1>
+            <p class="subtitle">Powered by Google Gemini 2.5 Flash Image</p>
+        </header>
+        
+
+        
+        <!-- API Key Section -->
+        <div class="card">
+            <div class="api-key-section">
+                <h3><i class="fas fa-key"></i> Google Gemini API Key Required</h3>
+                <p>To use this AI Image Generator, you need a Google Gemini API key. You can get one for free at <a href="https://aistudio.google.com/apikey/" target="_blank">Google AI Studio</a>.</p>
+                <div class="api-key-input">
+                    <input type="password" id="api-key" placeholder="Enter your Gemini API key here...">
+                    <button class="btn btn-primary" id="save-api-key">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="upload">
+                    <i class="fas fa-upload"></i> Upload Image
+                </div>
+                <div class="tab" data-tab="camera">
+                    <i class="fas fa-camera"></i> Use Camera
+                </div>
+            </div>
+            
+            <div class="tab-content active" id="upload-tab">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drag & Drop Images Here</h3>
+                    <p>or click to browse files</p>
+                    <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                </div>
+                <div class="preview-container" id="preview-container"></div>
+            </div>
+            
+            <div class="tab-content" id="camera-tab">
+                <div class="camera-container">
+                    <video id="camera-feed" autoplay></video>
+                    <canvas id="camera-canvas" style="display: none;"></canvas>
+                    <div class="camera-controls">
+                        <button class="btn btn-primary" id="start-camera">
+                            <i class="fas fa-play"></i> Start Camera
+                        </button>
+                        <button class="btn btn-secondary" id="capture-photo" disabled>
+                            <i class="fas fa-camera"></i> Capture Photo
+                        </button>
+                    </div>
+                    <div class="preview-container" id="camera-preview-container"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="prompt">Enter your prompt:</label>
+                <textarea id="prompt" rows="4" placeholder="Describe what you want to generate...">Transform this image into a futuristic version with neon lighting.</textarea>
+            </div>
+            
+            <button class="btn btn-primary" id="generate-btn">
+                <i class="fas fa-magic"></i> Generate Image with Gemini
+            </button>
+            
+            <div class="debug-info" id="debug-info" style="display: none;">
+                <h4>Debug Information:</h4>
+                <div id="debug-content"></div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your image with Google Gemini, please wait...</p>
+        </div>
+        
+        <div class="card result-section" id="result-section">
+            <h2>Generated Image</h2>
+            <div class="result-container">
+                <img id="result-image" class="result-image" src="" alt="Generated image">
+                <div class="result-actions">
+                    <button class="btn btn-success" id="download-btn">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="btn btn-secondary" id="reiterate-btn">
+                        <i class="fas fa-redo"></i> Regenerate
+                    </button>
+                    <button class="btn btn-danger" id="delete-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-message">Success!</span>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check browser compatibility
+            checkBrowserCompatibility();
+            
+            // Check for saved API key
+            const savedApiKey = localStorage.getItem('geminiApiKey');
+            if (savedApiKey) {
+                document.getElementById('api-key').value = savedApiKey;
+            }
+            
+            // Save API key
+            document.getElementById('save-api-key').addEventListener('click', () => {
+                const apiKey = document.getElementById('api-key').value.trim();
+                if (apiKey) {
+                    localStorage.setItem('geminiApiKey', apiKey);
+                    showNotification('API key saved successfully!', 'success');
+                } else {
+                    showNotification('Please enter a valid API key', 'error');
+                }
+            });
+            
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // File upload functionality
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const previewContainer = document.getElementById('preview-container');
+            let uploadedFiles = [];
+            
+            // Check if drag and drop is supported
+            if (isDragDropSupported()) {
+                uploadArea.addEventListener('click', () => fileInput.click());
+                uploadArea.addEventListener('dragover', handleDragOver);
+                uploadArea.addEventListener('dragleave', handleDragLeave);
+                uploadArea.addEventListener('drop', handleDrop);
+            } else {
+                // Fallback for browsers that don't support drag and drop
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3>Click to Browse Files</h3>
+                    <p>Your browser doesn't support drag and drop</p>
+                `;
+                uploadArea.addEventListener('click', () => fileInput.click());
+            }
+            
+            fileInput.addEventListener('change', () => {
+                handleFiles(fileInput.files);
+            });
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            }
+            
+            function handleDragLeave() {
+                uploadArea.classList.remove('dragover');
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            }
+            
+            function handleFiles(files) {
+                [...files].forEach(file => {
+                    if (!file.type.startsWith('image/')) {
+                        showNotification('Please upload image files only', 'error');
+                        return;
+                    }
+                    
+                    // Check file size (limit to 10MB)
+                    if (file.size > 10 * 1024 * 1024) {
+                        showNotification('File size exceeds 10MB limit', 'error');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const fileData = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            type: file.type,
+                            size: file.size,
+                            src: e.target.result,
+                            data: e.target.result.split(',')[1] // Base64 data without prefix
+                        };
+                        uploadedFiles.push(fileData);
+                        displayPreview(fileData);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            function displayPreview(fileData) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${fileData.src}" alt="${fileData.name}" class="preview-image">
+                    <button class="remove-preview" data-id="${fileData.id}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                previewContainer.appendChild(previewItem);
+                previewItem.querySelector('.remove-preview').addEventListener('click', () => {
+                    uploadedFiles = uploadedFiles.filter(f => f.id !== fileData.id);
+                    previewItem.remove();
+                });
+            }
+            
+            // Camera functionality
+            const cameraFeed = document.getElementById('camera-feed');
+            const cameraCanvas = document.getElementById('camera-canvas');
+            const startCameraBtn = document.getElementById('start-camera');
+            const capturePhotoBtn = document.getElementById('capture-photo');
+            const cameraPreviewContainer = document.getElementById('camera-preview-container');
+            let stream = null;
+            let capturedImage = null;
+            
+            // Check if camera is supported
+            if (!isCameraSupported()) {
+                startCameraBtn.disabled = true;
+                startCameraBtn.innerHTML = '<i class="fas fa-times-circle"></i> Camera Not Supported';
+                startCameraBtn.classList.remove('btn-primary');
+                startCameraBtn.classList.add('btn-secondary');
+            }
+            
+            startCameraBtn.addEventListener('click', async () => {
+                if (stream) {
+                    // Stop the camera
+                    stopCamera();
+                } else {
+                    // Start the camera
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { 
+                                facingMode: 'environment',
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            } 
+                        });
+                        cameraFeed.srcObject = stream;
+                        capturePhotoBtn.disabled = false;
+                        startCameraBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Camera';
+                    } catch (err) {
+                        console.error('Error accessing camera:', err);
+                        showNotification('Camera access denied or not available', 'error');
+                        
+                        // Provide fallback options
+                        if (err.name === 'NotAllowedError') {
+                            showNotification('Please allow camera access to use this feature', 'error');
+                        } else if (err.name === 'NotFoundError') {
+                            showNotification('No camera found on this device', 'error');
+                        } else {
+                            showNotification('Error accessing camera: ' + err.message, 'error');
+                        }
+                    }
+                }
+            });
+            
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    cameraFeed.srcObject = null;
+                    capturePhotoBtn.disabled = true;
+                    startCameraBtn.innerHTML = '<i class="fas fa-play"></i> Start Camera';
+                    stream = null;
+                }
+            }
+            
+            capturePhotoBtn.addEventListener('click', () => {
+                try {
+                    const context = cameraCanvas.getContext('2d');
+                    cameraCanvas.width = cameraFeed.videoWidth;
+                    cameraCanvas.height = cameraFeed.videoHeight;
+                    context.drawImage(cameraFeed, 0, 0, cameraFeed.videoWidth, cameraFeed.videoHeight);
+                    
+                    const imageDataUrl = cameraCanvas.toDataURL('image/png');
+                    capturedImage = {
+                        id: Date.now(),
+                        name: 'captured-image.png',
+                        type: 'image/png',
+                        src: imageDataUrl,
+                        data: imageDataUrl.split(',')[1] // Base64 data without prefix
+                    };
+                    
+                    displayCameraPreview(capturedImage);
+                    showNotification('Photo captured successfully!', 'success');
+                } catch (err) {
+                    console.error('Error capturing photo:', err);
+                    showNotification('Error capturing photo: ' + err.message, 'error');
+                }
+            });
+            
+            function displayCameraPreview(imageData) {
+                cameraPreviewContainer.innerHTML = '';
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${imageData.src}" alt="${imageData.name}" class="preview-image">
+                    <button class="remove-preview" data-id="${imageData.id}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                cameraPreviewContainer.appendChild(previewItem);
+                previewItem.querySelector('.remove-preview').addEventListener('click', () => {
+                    capturedImage = null;
+                    previewItem.remove();
+                });
+            }
+            
+            // Generate functionality with Google Gemini REST API
+            const generateBtn = document.getElementById('generate-btn');
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('result-section');
+            const resultImage = document.getElementById('result-image');
+            const promptTextarea = document.getElementById('prompt');
+            const debugInfo = document.getElementById('debug-info');
+            const debugContent = document.getElementById('debug-content');
+            
+            generateBtn.addEventListener('click', async () => {
+                const apiKey = document.getElementById('api-key').value.trim();
+                
+                if (!apiKey) {
+                    showNotification('Please enter your Google Gemini API key', 'error');
+                    document.getElementById('api-key').focus();
+                    return;
+                }
+                
+                const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
+                let sourceImage = null;
+                let sourceImageData = null;
+                
+                if (activeTab === 'upload' && uploadedFiles.length > 0) {
+                    // Use the first uploaded image
+                    sourceImage = uploadedFiles[0];
+                    sourceImageData = {
+                        data: sourceImage.data,
+                        mime_type: sourceImage.type
+                    };
+                } else if (activeTab === 'camera' && capturedImage) {
+                    // Use the captured image
+                    sourceImage = capturedImage;
+                    sourceImageData = {
+                        data: capturedImage.data,
+                        mime_type: capturedImage.type
+                    };
+                }
+                
+                const prompt = promptTextarea.value.trim();
+                if (!prompt) {
+                    showNotification('Please enter a prompt', 'error');
+                    promptTextarea.focus();
+                    return;
+                }
+                
+                // Show debug information
+                debugInfo.style.display = 'block';
+                debugContent.innerHTML = `
+                    <p><strong>API Key:</strong> ${apiKey.substring(0, 10)}...</p>
+                    <p><strong>Source Image:</strong> ${sourceImage ? sourceImage.name + ' (' + sourceImage.type + ')' : 'None'}</p>
+                    <p><strong>Prompt:</strong> ${prompt}</p>
+                    <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+                `;
+                
+                // Show loading
+                loading.classList.add('active');
+                resultSection.classList.remove('active');
+                
+                try {
+                    // Check if fetch API is supported
+                    if (!window.fetch || !window.Promise) {
+                        throw new Error('Your browser does not support the features required for this application');
+                    }
+                    
+                    // Prepare the request payload
+                    const payload = {
+                        contents: [
+                            {
+                                parts: []
+                            }
+                        ],
+                        generationConfig: {
+                            responseModalities: ["TEXT", "IMAGE"]
+                        }
+                    };
+                    
+                    // Add text prompt
+                    payload.contents[0].parts.push({ text: prompt });
+                    
+                    // Add image if available
+                    if (sourceImage) {
+                        payload.contents[0].parts.push({
+                            inlineData: {
+                                mimeType: sourceImageData.mime_type,
+                                data: sourceImageData.data
+                            }
+                        });
+                    }
+                    
+                    // Make API request with timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+                    
+                    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent';
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-goog-api-key': apiKey
+                        },
+                        body: JSON.stringify(payload),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const responseData = await response.json();
+                    
+                    // Process the response
+                    let imageGenerated = false;
+                    
+                    if (responseData.candidates && responseData.candidates.length > 0) {
+                        const candidate = responseData.candidates[0];
+                        
+                        if (candidate.content && candidate.content.parts) {
+                            for (const part of candidate.content.parts) {
+                                if (part.inlineData) {
+                                    // This is an image
+                                    const imageData = part.inlineData.data;
+                                    const imageSrc = `data:${part.inlineData.mimeType};base64,${imageData}`;
+                                    resultImage.src = imageSrc;
+                                    imageGenerated = true;
+                                } else if (part.text) {
+                                    // This is text response
+                                    console.log('Gemini response:', part.text);
+                                    debugContent.innerHTML += `<p><strong>Gemini Text Response:</strong> ${part.text}</p>`;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (imageGenerated) {
+                        resultSection.classList.add('active');
+                        showNotification('Image generated successfully with Google Gemini!', 'success');
+                        
+                        // Scroll to result
+                        setTimeout(() => {
+                            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 300);
+                    } else {
+                        showNotification('No image was generated. Check the debug info for details.', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error generating image:', error);
+                    debugContent.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
+                    
+                    if (error.name === 'AbortError') {
+                        showNotification('Request timed out. Please try again.', 'error');
+                    } else if (error.message.includes('API key')) {
+                        showNotification('Invalid API key. Please check your API key and try again.', 'error');
+                    } else {
+                        showNotification('Error generating image: ' + error.message, 'error');
+                    }
+                } finally {
+                    loading.classList.remove('active');
+                }
+            });
+            
+            // Result actions
+            const downloadBtn = document.getElementById('download-btn');
+            const reiterateBtn = document.getElementById('reiterate-btn');
+            const deleteBtn = document.getElementById('delete-btn');
+            
+            downloadBtn.addEventListener('click', async () => {
+                try {
+                    showNotification('Preparing download...', 'success');
+                    
+                    // Get the image URL
+                    const imageUrl = resultImage.src;
+                    
+                    // If it's a data URL (base64), create download directly
+                    if (imageUrl.startsWith('data:')) {
+                        // Check if download attribute is supported
+                        if (isDownloadAttributeSupported()) {
+                            const link = document.createElement('a');
+                            link.href = imageUrl;
+                            link.download = 'gemini-generated-image.png';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            showNotification('Image downloaded successfully!', 'success');
+                        } else {
+                            // Fallback for browsers that don't support download attribute
+                            window.open(imageUrl, '_blank');
+                            showNotification('Image opened in new tab. Please save it manually.', 'success');
+                        }
+                    } else {
+                        // Fetch the image data for external URLs
+                        const response = await fetch(imageUrl);
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch image');
+                        }
+                        
+                        const blob = await response.blob();
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        if (isDownloadAttributeSupported()) {
+                            const link = document.createElement('a');
+                            link.href = blobUrl;
+                            link.download = 'gemini-generated-image.png';
+                            
+                            document.body.appendChild(link);
+                            link.click();
+                            
+                            setTimeout(() => {
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(blobUrl);
+                            }, 100);
+                        } else {
+                            // Fallback for browsers that don't support download attribute
+                            window.open(blobUrl, '_blank');
+                            setTimeout(() => {
+                                URL.revokeObjectURL(blobUrl);
+                            }, 100);
+                        }
+                        
+                        showNotification('Image downloaded successfully!', 'success');
+                    }
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    
+                    // Fallback method: open image in new tab
+                    const link = document.createElement('a');
+                    link.href = resultImage.src;
+                    link.target = '_blank';
+                    link.download = 'gemini-generated-image.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showNotification('Download started. Right-click and save the image if it doesn\'t download automatically.', 'success');
+                }
+            });
+            
+            reiterateBtn.addEventListener('click', () => {
+                generateBtn.click();
+            });
+            
+            deleteBtn.addEventListener('click', () => {
+                resultSection.classList.remove('active');
+                showNotification('Image deleted', 'success');
+            });
+            
+            // Notification system
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notification-message');
+            function showNotification(message, type = 'success') {
+                notificationMessage.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000); // Increased timeout for better readability
+            }
+            
+            // Browser compatibility functions
+            function checkBrowserCompatibility() {
+                const isCompatible = 
+                    window.File && 
+                    window.FileReader && 
+                    window.FileList && 
+                    window.Blob &&
+                    window.fetch &&
+                    window.Promise;
+                
+                if (!isCompatible) {
+                    document.getElementById('browser-warning').style.display = 'block';
+                }
+            }
+            
+            function isDragDropSupported() {
+                const div = document.createElement('div');
+                return ('draggable' in div) || ('ondragstart' in div && 'ondrop' in div);
+            }
+            
+            function isCameraSupported() {
+                return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+            }
+            
+            function isDownloadAttributeSupported() {
+                const a = document.createElement('a');
+                return 'download' in a;
+            }
+            
+            // Handle page visibility change to pause/resume camera if needed
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && stream) {
+                    // Page is hidden, consider pausing camera
+                    console.log('Page hidden, camera still running');
+                } else if (!document.hidden && stream) {
+                    // Page is visible again
+                    console.log('Page visible again');
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                // Adjust UI if needed
+                console.log('Window resized');
+            });
+            
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                if (stream) {
+                    stopCamera();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
